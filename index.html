@@ -160,23 +160,23 @@
         >
           <div style={{
             display: "flex", alignItems: "center",
-            padding: "13px 14px", gap: "10px",
+            padding: "13px 16px", gap: "10px",
             borderBottom: `1px solid ${C.border2}`,
           }}>
             <span style={{ color: C.dim3, fontSize: "10px", fontFamily: "'DM Mono', monospace", minWidth: "18px" }}>
               {String(index + 1).padStart(2, "0")}
             </span>
             <div style={{ flex: 1 }}>
-              <div style={{ color: C.text, fontSize: "14px", fontFamily: "'Playfair Display', serif", letterSpacing: "0.02em", marginBottom: "2px" }}>
+              <div style={{ color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif", letterSpacing: "0.02em", marginBottom: "2px" }}>
                 {cat.label}
               </div>
               <div style={{ color: C.dim2, fontSize: "9px", fontFamily: "'DM Mono', monospace", lineHeight: "1.5", letterSpacing: "0.03em" }}>
                 {cat.description}
               </div>
             </div>
-            <div style={{ color: C.dim3, fontSize: "14px", userSelect: "none", cursor: "grab", padding: "0 2px" }}>⠿</div>
+            <div style={{ color: C.dim3, fontSize: "16px", userSelect: "none", cursor: "grab", padding: "0 2px" }}>⠿</div>
           </div>
-          <div style={{ padding: "10px 14px 12px", display: "flex", flexDirection: "column", gap: "8px", background: C.bg }}>
+          <div style={{ padding: "10px 16px 12px", display: "flex", flexDirection: "column", gap: "8px", background: C.bg }}>
             <Selector
               options={WEIGHTS}
               value={assessment.weight || null}
@@ -335,7 +335,7 @@
 
       return (
         <div style={{ minHeight: "100vh", background: C.bg }}>
-          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 14px 130px" }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 16px 130px" }}>
             <div style={{
               padding: "20px 0 16px",
               display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -347,7 +347,7 @@
                 {completed} / {items.length}
               </span>
             </div>
-            <div style={{ fontSize: "9px", color: C.dim3, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", marginBottom: "14px" }}>
+            <div style={{ fontSize: "9px", color: C.dim3, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", marginBottom: "16px" }}>
               DRAG TO RANK · TAP TO SELECT
             </div>
             <DraggableList
@@ -386,7 +386,7 @@
     function ResultsScreen({ items, assessments, onReset }) {
       return (
         <div style={{ minHeight: "100vh", background: C.bg }}>
-          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 14px 48px" }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 16px 48px" }}>
             <div style={{ padding: "32px 0 24px", textAlign: "center" }}>
               <div style={{ fontSize: "9px", letterSpacing: "0.25em", color: C.accent, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginBottom: "10px" }}>◆</div>
               <h2 style={{ fontSize: "28px", fontFamily: "'Playfair Display', serif", color: C.text, fontWeight: 400, marginBottom: "6px" }}>Your Baseline</h2>
@@ -400,14 +400,14 @@
                 return (
                   <div key={cat.id} style={{
                     display: "flex", alignItems: "center",
-                    padding: "11px 14px", gap: "10px",
+                    padding: "11px 16px", gap: "10px",
                     background: C.surface, border: `1px solid ${C.border1}`, borderRadius: "8px",
                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                   }}>
                     <span style={{ color: C.accent, fontSize: "10px", fontFamily: "'DM Mono', monospace", minWidth: "18px" }}>
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span style={{ flex: 1, color: C.text, fontSize: "14px", fontFamily: "'Playfair Display', serif" }}>
+                    <span style={{ flex: 1, color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif" }}>
                       {cat.label}
                     </span>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -435,7 +435,7 @@
             </div>
 
             <button onClick={onReset} style={{
-              width: "100%", padding: "14px",
+              width: "100%", padding: "16px",
               background: "transparent", border: `1px solid ${C.border1}`,
               borderRadius: "8px", color: C.dim1,
               fontSize: "10px", fontFamily: "'DM Mono', monospace",
