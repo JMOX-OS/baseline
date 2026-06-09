@@ -4,464 +4,379 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Baseline</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: #F5F0E8; color: #2a2420; -webkit-font-smoothing: antialiased; font-size: 16px; }
-    #root { height: 100%; }
-    button { -webkit-tap-highlight-color: transparent; font-family: inherit; border: none; outline: none; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #F5F0E8; }
-    ::-webkit-scrollbar-thumb { background: #d9d0c0; border-radius: 2px; }
+    html, body { min-height: 100%; background: #F5F0E8; color: #2a2420; -webkit-font-smoothing: antialiased; font-family: 'DM Mono', monospace; }
+
+    .screen { display: none; min-height: 100vh; background: #F5F0E8; }
+    .screen.active { display: block; }
+
+    /* INTRO */
+    #screen-intro { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+    #screen-intro.active { display: flex; }
+    .intro-inner { max-width: 340px; width: 100%; text-align: center; }
+    .intro-diamond { font-size: 11px; letter-spacing: 0.3em; color: #c4bab0; margin-bottom: 20px; }
+    .intro-title { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 400; color: #2a2420; letter-spacing: 0.04em; margin-bottom: 14px; line-height: 1; }
+    .intro-sub { color: #6a5f55; font-size: 13px; line-height: 2.2; letter-spacing: 0.05em; margin-bottom: 40px; }
+    .intro-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; text-align: left; padding: 22px; background: #FDFAF4; border: 1px solid #DDD6C8; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .intro-step { display: flex; gap: 14px; align-items: flex-start; }
+    .intro-step-num { color: #B85C38; font-size: 11px; min-width: 20px; padding-top: 2px; }
+    .intro-step-text { color: #6a5f55; font-size: 12px; line-height: 1.7; }
+    .btn-primary { width: 100%; padding: 18px; background: #B85C38; border: none; border-radius: 10px; color: #fff; font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 2px 10px rgba(184,92,56,0.35); -webkit-appearance: none; }
+
+    /* ASSESSMENT */
+    #screen-assessment { display: none; }
+    #screen-assessment.active { display: block; }
+    .assess-inner { max-width: 480px; margin: 0 auto; padding: 0 14px 130px; }
+    .assess-header { padding: 20px 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #DDD6C8; margin-bottom: 16px; position: sticky; top: 0; background: #F5F0E8; z-index: 10; }
+    .assess-title { font-family: 'Playfair Display', serif; font-size: 18px; color: #2a2420; }
+    .assess-count { font-size: 11px; color: #c4bab0; letter-spacing: 0.1em; transition: color 0.3s; }
+    .assess-count.done { color: #B85C38; }
+    .assess-hint { font-size: 10px; color: #c4bab0; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .card-list { display: flex; flex-direction: column; gap: 8px; }
+
+    /* CARD */
+    .card { background: #FDFAF4; border: 1.5px solid #DDD6C8; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); touch-action: none; transition: opacity 0.15s, border-color 0.15s; }
+    .card.dragging { opacity: 0.45; border-color: #B85C38; }
+    .card-header { display: flex; align-items: center; padding: 14px 16px; gap: 12px; border-bottom: 1px solid #EAE4D8; }
+    .card-num { color: #B85C38; font-size: 11px; min-width: 20px; }
+    .card-info { flex: 1; }
+    .card-label { font-family: 'Playfair Display', serif; font-size: 16px; color: #2a2420; margin-bottom: 3px; font-weight: 400; }
+    .card-desc { font-size: 11px; color: #9a8f85; line-height: 1.5; }
+    .card-handle { color: #c4bab0; font-size: 18px; cursor: grab; padding: 0 2px; user-select: none; }
+    .card-body { padding: 12px 16px 14px; background: #F5F0E8; display: flex; flex-direction: column; gap: 8px; }
+    .btn-row { display: flex; gap: 6px; }
+    .opt-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #F5F0E8; border: 1.5px solid #DDD6C8; border-radius: 8px; cursor: pointer; flex: 1; min-width: 0; -webkit-appearance: none; transition: background 0.12s, border-color 0.12s; }
+    .opt-btn.active { background: #F7EDE7; border-color: #B85C38; }
+    .opt-btn span { font-size: 10px; letter-spacing: 0.07em; color: #6a5f55; text-transform: uppercase; font-family: 'DM Mono', monospace; white-space: nowrap; }
+    .opt-btn.active span { color: #B85C38; }
+
+    /* BARS */
+    .bars { display: flex; gap: 3px; align-items: flex-end; height: 20px; }
+    .bar { width: 4px; border-radius: 1px; border: 1.5px solid #DDD6C8; background: transparent; }
+    .bar.b1 { height: 9px; }
+    .bar.b2 { height: 14px; }
+    .bar.b3 { height: 20px; }
+    .bar.filled { background: #9a8f85; border-color: #9a8f85; }
+    .opt-btn.active .bar.filled { background: #B85C38; border-color: #B85C38; }
+
+    /* CIRCLES */
+    .circle-icon svg { display: block; }
+
+    /* FIXED FOOTER */
+    .assess-footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px 32px; background: linear-gradient(to top, #F5F0E8 65%, transparent); display: flex; justify-content: center; }
+    .btn-submit { width: 100%; max-width: 480px; padding: 17px; background: transparent; border: 1.5px solid #DDD6C8; border-radius: 10px; color: #9a8f85; font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.18em; text-transform: uppercase; cursor: default; -webkit-appearance: none; transition: all 0.3s; }
+    .btn-submit.ready { background: #B85C38; border-color: #B85C38; color: #fff; cursor: pointer; box-shadow: 0 2px 10px rgba(184,92,56,0.35); }
+
+    /* RESULTS */
+    #screen-results { display: none; }
+    #screen-results.active { display: block; }
+    .results-inner { max-width: 480px; margin: 0 auto; padding: 0 14px 56px; }
+    .results-header { padding: 32px 0 24px; text-align: center; }
+    .results-diamond { font-size: 10px; letter-spacing: 0.25em; color: #B85C38; margin-bottom: 10px; }
+    .results-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 400; color: #2a2420; margin-bottom: 8px; }
+    .results-sub { font-size: 12px; color: #6a5f55; letter-spacing: 0.07em; }
+    .result-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 28px; }
+    .result-row { display: flex; align-items: center; padding: 13px 16px; gap: 12px; background: #FDFAF4; border: 1px solid #DDD6C8; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .result-num { color: #B85C38; font-size: 11px; min-width: 20px; }
+    .result-label { flex: 1; font-family: 'Playfair Display', serif; font-size: 16px; color: #2a2420; }
+    .result-icons { display: flex; align-items: center; gap: 14px; }
+    .claude-box { padding: 18px; background: #F7EDE7; border: 1px solid #DDD6C8; border-radius: 10px; margin-bottom: 22px; text-align: center; }
+    .claude-box p { color: #6a5f55; font-size: 11px; line-height: 1.9; letter-spacing: 0.04em; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center; margin-bottom: 24px; align-items: center; }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .legend-item span { color: #6a5f55; font-size: 10px; white-space: nowrap; }
+    .legend-divider { width: 1px; height: 20px; background: #DDD6C8; }
+    .btn-reset { width: 100%; padding: 15px; background: transparent; border: 1.5px solid #DDD6C8; border-radius: 10px; color: #6a5f55; font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; -webkit-appearance: none; }
   </style>
 </head>
 <body>
-<div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen">
+  <div class="intro-inner">
+    <div class="intro-diamond">◆</div>
+    <h1 class="intro-title">Baseline</h1>
+    <p class="intro-sub">Eleven categories.<br>Three inputs each.<br>One honest conversation.</p>
+    <div class="intro-steps">
+      <div class="intro-step"><span class="intro-step-num">01</span><span class="intro-step-text">Rank categories by dragging them into your order of importance.</span></div>
+      <div class="intro-step"><span class="intro-step-num">02</span><span class="intro-step-text">For each category, select a weight and an attribution.</span></div>
+      <div class="intro-step"><span class="intro-step-num">03</span><span class="intro-step-text">Complete privately. Share your screen when ready.</span></div>
+    </div>
+    <button class="btn-primary" onclick="showScreen('assessment')">Begin</button>
+  </div>
+</div>
+
+<!-- ASSESSMENT -->
+<div id="screen-assessment" class="screen">
+  <div class="assess-inner">
+    <div class="assess-header">
+      <span class="assess-title">Baseline</span>
+      <span class="assess-count" id="count-display">0 / 11</span>
+    </div>
+    <div class="assess-hint">DRAG TO RANK · TAP TO SELECT</div>
+    <div class="card-list" id="card-list"></div>
+  </div>
+  <div class="assess-footer">
+    <button class="btn-submit" id="btn-submit" onclick="trySubmit()">11 categories remaining</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="screen-results" class="screen">
+  <div class="results-inner">
+    <div class="results-header">
+      <div class="results-diamond">◆</div>
+      <h2 class="results-title">Your Baseline</h2>
+      <p class="results-sub">Share this screen with your partner</p>
+    </div>
+    <div class="result-list" id="result-list"></div>
+    <div class="claude-box">
+      <p>Want to explore your results together?<br>Screenshot this screen and share it with Claude.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+    <button class="btn-reset" onclick="resetApp()">Start Over</button>
+  </div>
+</div>
+
 <script>
-(function() {
-  var h = React.createElement;
-  var useState = React.useState;
-  var useRef = React.useRef;
+var CATEGORIES = [
+  { id: "connection",    label: "Connection",        desc: "How emotional closeness and romantic attention show up in a relationship." },
+  { id: "sex",           label: "Sex",               desc: "The role of physical intimacy, frequency, and compatibility." },
+  { id: "children",      label: "Children",          desc: "Whether to have them, how many, and the role they play in a shared future." },
+  { id: "family",        label: "Family",            desc: "The place of extended family in daily life and major decisions." },
+  { id: "religion",      label: "Religion",          desc: "The role of faith, practice, and spiritual life in the relationship." },
+  { id: "politics",      label: "Politics & Values", desc: "Alignment or tolerance of difference on worldview, beliefs, and civic life." },
+  { id: "financials",    label: "Financials",        desc: "How money is earned, managed, and planned for." },
+  { id: "home",          label: "Home & Daily Life", desc: "Environment, habits, pace, and the texture of everyday living." },
+  { id: "career",        label: "Career",            desc: "The priority of professional ambition and how it shapes shared life." },
+  { id: "location",      label: "Location",          desc: "Where you live, and how fixed or flexible that is." },
+  { id: "communication", label: "Communication",     desc: "How needs, conflict, and difference get expressed and resolved." }
+];
 
-  var CATEGORIES = [
-    { id: "connection",    label: "Connection",        description: "How emotional closeness and romantic attention show up in a relationship." },
-    { id: "sex",           label: "Sex",               description: "The role of physical intimacy, frequency, and compatibility." },
-    { id: "children",      label: "Children",          description: "Whether to have them, how many, and the role they play in a shared future." },
-    { id: "family",        label: "Family",            description: "The place of extended family in daily life and major decisions." },
-    { id: "religion",      label: "Religion",          description: "The role of faith, practice, and spiritual life in the relationship." },
-    { id: "politics",      label: "Politics & Values", description: "Alignment or tolerance of difference on worldview, beliefs, and civic life." },
-    { id: "financials",    label: "Financials",        description: "How money is earned, managed, and planned for." },
-    { id: "home",          label: "Home & Daily Life", description: "Environment, habits, pace, and the texture of everyday living." },
-    { id: "career",        label: "Career",            description: "The priority of professional ambition and how it shapes shared life." },
-    { id: "location",      label: "Location",          description: "Where you live, and how fixed or flexible that is." },
-    { id: "communication", label: "Communication",     description: "How needs, conflict, and difference get expressed and resolved." }
-  ];
+var WEIGHTS = [
+  { value: "essential", label: "Essential", bars: 3 },
+  { value: "important", label: "Important", bars: 2 },
+  { value: "flexible",  label: "Flexible",  bars: 1 }
+];
 
-  var WEIGHTS = [
-    { value: "essential", label: "Essential", bars: 3 },
-    { value: "important", label: "Important", bars: 2 },
-    { value: "flexible",  label: "Flexible",  bars: 1 }
-  ];
+var ATTRIBUTIONS = [
+  { value: "me",      label: "Me" },
+  { value: "partner", label: "My Partner" },
+  { value: "us",      label: "Us Together" }
+];
 
-  var ATTRIBUTIONS = [
-    { value: "me",      label: "Me" },
-    { value: "partner", label: "My Partner" },
-    { value: "us",      label: "Us Together" }
-  ];
+var order = CATEGORIES.map(function(c) { return c.id; });
+var assessments = {};
+var dragSrcIndex = null;
+var touchSrcIndex = null;
+var touchTargetIndex = null;
 
-  var C = {
-    bg:       "#F5F0E8",
-    surface:  "#FDFAF4",
-    border1:  "#DDD6C8",
-    border2:  "#EAE4D8",
-    text:     "#2a2420",
-    accent:   "#B85C38",
-    accentBg: "#F7EDE7",
-    dim1:     "#6a5f55",
-    dim2:     "#9a8f85",
-    dim3:     "#c4bab0"
-  };
+function showScreen(name) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
 
-  function BarIcon(props) {
-    return h('div', { style: { display: "flex", gap: "3px", alignItems: "flex-end", height: "20px" } },
-      [1,2,3].map(function(i) {
-        var isActive = i <= props.count;
-        return h('div', { key: i, style: {
-          width: "4px",
-          height: i === 1 ? "9px" : i === 2 ? "14px" : "20px",
-          background: isActive ? (props.active ? C.accent : C.dim2) : "transparent",
-          border: "1.5px solid " + (isActive ? (props.active ? C.accent : C.dim2) : C.border1),
-          borderRadius: "1px"
-        }});
-      })
-    );
-  }
-
-  function CircleIcon(props) {
-    var col = props.active ? C.accent : C.dim2;
-    if (props.type === "me") {
-      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg" },
-        h('circle', { cx: "10", cy: "10", r: "8", fill: col })
-      );
+function barsSVG(count, active) {
+  var ac = active ? '#B85C38' : '#9a8f85';
+  var in_c = '#DDD6C8';
+  var heights = [9, 14, 20];
+  var html = '<div class="bars">';
+  for (var i = 1; i <= 3; i++) {
+    if (i <= count) {
+      html += '<div style="width:4px;height:' + heights[i-1] + 'px;border-radius:1px;background:' + ac + ';border:1.5px solid ' + ac + ';"></div>';
+    } else {
+      html += '<div style="width:4px;height:' + heights[i-1] + 'px;border-radius:1px;background:transparent;border:1.5px solid ' + in_c + ';"></div>';
     }
-    if (props.type === "partner") {
-      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg" },
-        h('circle', { cx: "10", cy: "10", r: "7.5", fill: "none", stroke: col, strokeWidth: "2" })
-      );
-    }
-    if (props.type === "us") {
-      return h('svg', { width: "32", height: "20", viewBox: "0 0 32 20", xmlns: "http://www.w3.org/2000/svg" },
-        h('circle', { cx: "10", cy: "10", r: "7.5", fill: props.active ? C.accent : "none", fillOpacity: props.active ? "0.7" : "0", stroke: col, strokeWidth: "2" }),
-        h('circle', { cx: "22", cy: "10", r: "7.5", fill: props.active ? C.accent : "none", fillOpacity: props.active ? "0.4" : "0", stroke: col, strokeWidth: "2" })
-      );
-    }
-    return null;
+  }
+  html += '</div>';
+  return html;
+}
+
+function circleSVG(type, active) {
+  var col = active ? '#B85C38' : '#9a8f85';
+  if (type === 'me') {
+    return '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="' + col + '"/></svg>';
+  }
+  if (type === 'partner') {
+    return '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5" fill="none" stroke="' + col + '" stroke-width="2"/></svg>';
+  }
+  if (type === 'us') {
+    var fo = active ? '0.7' : '0';
+    var fo2 = active ? '0.4' : '0';
+    return '<svg width="32" height="20" viewBox="0 0 32 20"><circle cx="10" cy="10" r="7.5" fill="' + col + '" fill-opacity="' + fo + '" stroke="' + col + '" stroke-width="2"/><circle cx="22" cy="10" r="7.5" fill="' + col + '" fill-opacity="' + fo2 + '" stroke="' + col + '" stroke-width="2"/></svg>';
+  }
+  return '';
+}
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function renderCard(catId, index) {
+  var cat = null;
+  for (var i = 0; i < CATEGORIES.length; i++) { if (CATEGORIES[i].id === catId) { cat = CATEGORIES[i]; break; } }
+  var a = assessments[catId] || {};
+
+  var weightBtns = '';
+  for (var wi = 0; wi < WEIGHTS.length; wi++) {
+    var w = WEIGHTS[wi];
+    var active = a.weight === w.value;
+    weightBtns += '<button class="opt-btn' + (active ? ' active' : '') + '" onclick="setWeight(\'' + catId + '\',\'' + w.value + '\')">' + barsSVG(w.bars, active) + '<span>' + w.label + '</span></button>';
   }
 
-  function OptionButton(props) {
-    var active = props.active;
-    return h('button', {
-      onClick: props.onClick,
-      style: {
-        display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-        padding: "10px 8px",
-        background: active ? C.accentBg : C.bg,
-        border: "1.5px solid " + (active ? C.accent : C.border1),
-        borderRadius: "8px",
-        cursor: "pointer",
-        flex: "1",
-        minWidth: "0"
-      }
-    },
-      props.icon,
-      h('span', { style: {
-        fontSize: "10px", letterSpacing: "0.07em",
-        color: active ? C.accent : C.dim1,
-        textTransform: "uppercase",
-        fontFamily: "'DM Mono', monospace",
-        whiteSpace: "nowrap"
-      }}, props.label)
-    );
+  var attrBtns = '';
+  for (var ai = 0; ai < ATTRIBUTIONS.length; ai++) {
+    var attr = ATTRIBUTIONS[ai];
+    var aactive = a.attribution === attr.value;
+    attrBtns += '<button class="opt-btn' + (aactive ? ' active' : '') + '" onclick="setAttribution(\'' + catId + '\',\'' + attr.value + '\')">' + circleSVG(attr.value, aactive) + '<span>' + attr.label + '</span></button>';
   }
 
-  function CategoryCard(props) {
-    var cat = props.cat;
-    var assessment = props.assessment || {};
+  return '<div class="card" id="card-' + catId + '" data-index="' + index + '" draggable="true">' +
+    '<div class="card-header">' +
+      '<span class="card-num">' + pad(index + 1) + '</span>' +
+      '<div class="card-info"><div class="card-label">' + cat.label + '</div><div class="card-desc">' + cat.desc + '</div></div>' +
+      '<span class="card-handle">⠿</span>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="btn-row">' + weightBtns + '</div>' +
+      '<div class="btn-row">' + attrBtns + '</div>' +
+    '</div>' +
+  '</div>';
+}
 
-    return h('div', {
-      draggable: true,
-      onDragStart: props.onDragStart,
-      onDragEnter: props.onDragEnter,
-      onDragEnd: props.onDragEnd,
-      onDragOver: function(e) { e.preventDefault(); },
-      onTouchStart: props.onTouchStart,
-      onTouchMove: props.onTouchMove,
-      onTouchEnd: props.onTouchEnd,
-      style: {
-        background: C.surface,
-        border: "1.5px solid " + (props.dragging ? C.accent : C.border1),
-        borderRadius: "12px",
-        overflow: "hidden",
-        opacity: props.dragging ? 0.5 : 1,
-        touchAction: "none",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.07)"
-      }
-    },
-      h('div', { style: {
-        display: "flex", alignItems: "center",
-        padding: "14px 16px", gap: "12px",
-        borderBottom: "1px solid " + C.border2
-      }},
-        h('span', { style: { color: C.accent, fontSize: "11px", fontFamily: "'DM Mono', monospace", minWidth: "20px" }},
-          String(props.index + 1).padStart(2, "0")
-        ),
-        h('div', { style: { flex: "1" } },
-          h('div', { style: { color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif", marginBottom: "3px" }},
-            cat.label
-          ),
-          h('div', { style: { color: C.dim2, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "1.5" }},
-            cat.description
-          )
-        ),
-        h('div', { style: { color: C.dim3, fontSize: "18px", userSelect: "none", cursor: "grab" }}, "⠿")
-      ),
-      h('div', { style: { padding: "12px 16px 14px", background: C.bg, display: "flex", flexDirection: "column", gap: "8px" }},
-        h('div', { style: { display: "flex", gap: "6px" } },
-          WEIGHTS.map(function(w) {
-            var active = assessment.weight === w.value;
-            return h(OptionButton, {
-              key: w.value,
-              active: active,
-              onClick: function() { props.onWeightChange(cat.id, w.value); },
-              icon: h(BarIcon, { count: w.bars, active: active }),
-              label: w.label
-            });
-          })
-        ),
-        h('div', { style: { display: "flex", gap: "6px" } },
-          ATTRIBUTIONS.map(function(a) {
-            var active = assessment.attribution === a.value;
-            return h(OptionButton, {
-              key: a.value,
-              active: active,
-              onClick: function() { props.onAttributionChange(cat.id, a.value); },
-              icon: h(CircleIcon, { type: a.value, active: active }),
-              label: a.label
-            });
-          })
-        )
-      )
-    );
+function renderCards() {
+  var list = document.getElementById('card-list');
+  var html = '';
+  for (var i = 0; i < order.length; i++) html += renderCard(order[i], i);
+  list.innerHTML = html;
+  attachDragListeners();
+  updateCount();
+}
+
+function attachDragListeners() {
+  var cards = document.querySelectorAll('.card');
+  for (var i = 0; i < cards.length; i++) {
+    (function(card, idx) {
+      card.addEventListener('dragstart', function(e) { dragSrcIndex = idx; card.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+      card.addEventListener('dragend',   function(e) { card.classList.remove('dragging'); });
+      card.addEventListener('dragover',  function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      card.addEventListener('drop',      function(e) { e.preventDefault(); if (dragSrcIndex !== null && dragSrcIndex !== idx) { reorder(dragSrcIndex, idx); } dragSrcIndex = null; });
+      card.addEventListener('touchstart', function(e) { touchSrcIndex = idx; touchTargetIndex = idx; }, { passive: true });
+      card.addEventListener('touchmove',  function(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        var el = document.elementFromPoint(touch.clientX, touch.clientY);
+        while (el && !el.classList.contains('card')) el = el.parentElement;
+        if (el) {
+          var ti = parseInt(el.getAttribute('data-index'));
+          if (!isNaN(ti)) touchTargetIndex = ti;
+        }
+      }, { passive: false });
+      card.addEventListener('touchend', function(e) {
+        if (touchSrcIndex !== null && touchTargetIndex !== null && touchSrcIndex !== touchTargetIndex) {
+          reorder(touchSrcIndex, touchTargetIndex);
+        }
+        touchSrcIndex = null; touchTargetIndex = null;
+      }, { passive: true });
+    })(cards[i], i);
   }
+}
 
-  function DraggableList(props) {
-    var dragItem     = useRef(null);
-    var dragOverItem = useRef(null);
-    var touchItem    = useRef(null);
-    var itemRefs     = useRef([]);
-    var draggingState = useState(null);
-    var draggingIndex = draggingState[0];
-    var setDraggingIndex = draggingState[1];
+function reorder(from, to) {
+  var moved = order.splice(from, 1)[0];
+  order.splice(to, 0, moved);
+  renderCards();
+}
 
-    function doReorder(from, to) {
-      if (from === null || to === null || from === to) return;
-      var next = props.items.slice();
-      var moved = next.splice(from, 1)[0];
-      next.splice(to, 0, moved);
-      props.onReorder(next);
-    }
+function setWeight(catId, value) {
+  if (!assessments[catId]) assessments[catId] = {};
+  assessments[catId].weight = value;
+  renderCards();
+}
 
-    return h('div', { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-      props.items.map(function(cat, i) {
-        return h('div', {
-          key: cat.id,
-          ref: function(el) { itemRefs.current[i] = el; }
-        },
-          h(CategoryCard, {
-            cat: cat,
-            index: i,
-            assessment: props.assessments[cat.id],
-            onWeightChange: props.onWeightChange,
-            onAttributionChange: props.onAttributionChange,
-            dragging: draggingIndex === i,
-            onDragStart: function() { dragItem.current = i; setDraggingIndex(i); },
-            onDragEnter: function() { dragOverItem.current = i; },
-            onDragEnd: function() {
-              doReorder(dragItem.current, dragOverItem.current);
-              dragItem.current = null; dragOverItem.current = null; setDraggingIndex(null);
-            },
-            onTouchStart: function(e) {
-              touchItem.current = i;
-              dragOverItem.current = i;
-            },
-            onTouchMove: function(e) {
-              e.preventDefault();
-              var y = e.touches[0].clientY;
-              for (var idx = 0; idx < itemRefs.current.length; idx++) {
-                var ref = itemRefs.current[idx];
-                if (!ref) continue;
-                var rect = ref.getBoundingClientRect();
-                if (y >= rect.top && y <= rect.bottom) { dragOverItem.current = idx; break; }
-              }
-            },
-            onTouchEnd: function() {
-              doReorder(touchItem.current, dragOverItem.current);
-              touchItem.current = null; dragOverItem.current = null;
-            }
-          })
-        );
-      })
-    );
+function setAttribution(catId, value) {
+  if (!assessments[catId]) assessments[catId] = {};
+  assessments[catId].attribution = value;
+  renderCards();
+}
+
+function updateCount() {
+  var done = 0;
+  for (var i = 0; i < order.length; i++) {
+    var a = assessments[order[i]];
+    if (a && a.weight && a.attribution) done++;
   }
-
-  function IntroScreen(props) {
-    return h('div', { style: {
-      minHeight: "100vh", background: C.bg,
-      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      padding: "40px 24px"
-    }},
-      h('div', { style: { maxWidth: "340px", width: "100%", textAlign: "center" } },
-        h('div', { style: { fontSize: "11px", letterSpacing: "0.3em", color: C.dim3, fontFamily: "'DM Mono', monospace", marginBottom: "20px" }}, "◆"),
-        h('h1', { style: { fontSize: "56px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em", marginBottom: "14px", fontWeight: "400", lineHeight: "1" }},
-          "Baseline"
-        ),
-        h('p', { style: { color: C.dim1, fontSize: "13px", fontFamily: "'DM Mono', monospace", lineHeight: "2.2", letterSpacing: "0.05em", marginBottom: "40px" }},
-          "Eleven categories.", h('br', null), "Three inputs each.", h('br', null), "One honest conversation."
-        ),
-        h('div', { style: {
-          display: "flex", flexDirection: "column", gap: "14px", marginBottom: "40px",
-          textAlign: "left", padding: "22px", background: C.surface,
-          border: "1px solid " + C.border1, borderRadius: "12px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.07)"
-        }},
-          ["Rank categories by dragging them into your order of importance.",
-           "For each category, select a weight and an attribution.",
-           "Complete privately. Share your screen when ready."
-          ].map(function(step, i) {
-            return h('div', { key: i, style: { display: "flex", gap: "14px", alignItems: "flex-start" } },
-              h('span', { style: { color: C.accent, fontFamily: "'DM Mono', monospace", fontSize: "11px", minWidth: "20px", paddingTop: "2px" }},
-                String(i+1).padStart(2,"0")
-              ),
-              h('span', { style: { color: C.dim1, fontFamily: "'DM Mono', monospace", fontSize: "12px", lineHeight: "1.7" }},
-                step
-              )
-            );
-          })
-        ),
-        h('button', {
-          onClick: props.onBegin,
-          style: {
-            width: "100%", padding: "18px",
-            background: C.accent, borderRadius: "10px",
-            color: "#fff", fontSize: "11px", fontFamily: "'DM Mono', monospace",
-            letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer",
-            boxShadow: "0 2px 10px rgba(184,92,56,0.35)"
-          }
-        }, "Begin")
-      )
-    );
+  var remaining = order.length - done;
+  var countEl = document.getElementById('count-display');
+  var btnEl   = document.getElementById('btn-submit');
+  countEl.textContent = done + ' / ' + order.length;
+  countEl.className = 'assess-count' + (done === order.length ? ' done' : '');
+  if (done === order.length) {
+    btnEl.textContent = 'View Results';
+    btnEl.className = 'btn-submit ready';
+  } else {
+    btnEl.textContent = remaining + (remaining === 1 ? ' category remaining' : ' categories remaining');
+    btnEl.className = 'btn-submit';
   }
+}
 
-  function AssessmentScreen(props) {
-    var completed  = props.items.filter(function(cat) {
-      var a = props.assessments[cat.id];
-      return a && a.weight && a.attribution;
-    }).length;
-    var isComplete = completed === props.items.length;
-
-    return h('div', { style: { minHeight: "100vh", background: C.bg } },
-      h('div', { style: { maxWidth: "480px", margin: "0 auto", padding: "0 14px 130px" } },
-        h('div', { style: {
-          padding: "20px 0 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
-          borderBottom: "1px solid " + C.border1, marginBottom: "16px",
-          position: "sticky", top: "0", background: C.bg, zIndex: "10"
-        }},
-          h('span', { style: { fontSize: "18px", fontFamily: "'Playfair Display', serif", color: C.text }}, "Baseline"),
-          h('span', { style: { fontSize: "11px", fontFamily: "'DM Mono', monospace", color: isComplete ? C.accent : C.dim3 }},
-            completed + " / " + props.items.length
-          )
-        ),
-        h('div', { style: { fontSize: "10px", color: C.dim3, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", marginBottom: "14px" }},
-          "DRAG TO RANK · TAP TO SELECT"
-        ),
-        h(DraggableList, {
-          items: props.items,
-          assessments: props.assessments,
-          onReorder: props.onReorder,
-          onWeightChange: props.onWeightChange,
-          onAttributionChange: props.onAttributionChange
-        })
-      ),
-      h('div', { style: {
-        position: "fixed", bottom: "0", left: "0", right: "0",
-        padding: "16px 20px 32px",
-        background: "linear-gradient(to top, " + C.bg + " 65%, transparent)",
-        display: "flex", justifyContent: "center"
-      }},
-        h('button', {
-          onClick: function() { if (isComplete) props.onViewResults(); },
-          style: {
-            width: "100%", maxWidth: "480px", padding: "17px",
-            background: isComplete ? C.accent : "transparent",
-            border: "1.5px solid " + (isComplete ? C.accent : C.border1),
-            borderRadius: "10px",
-            color: isComplete ? "#fff" : C.dim2,
-            fontSize: "11px", fontFamily: "'DM Mono', monospace",
-            letterSpacing: "0.18em", textTransform: "uppercase",
-            cursor: isComplete ? "pointer" : "default",
-            boxShadow: isComplete ? "0 2px 10px rgba(184,92,56,0.35)" : "none"
-          }
-        }, isComplete ? "View Results" : (props.items.length - completed) + " categories remaining")
-      )
-    );
+function trySubmit() {
+  var done = 0;
+  for (var i = 0; i < order.length; i++) {
+    var a = assessments[order[i]];
+    if (a && a.weight && a.attribution) done++;
   }
+  if (done === order.length) renderResults();
+}
 
-  function ResultsScreen(props) {
-    return h('div', { style: { minHeight: "100vh", background: C.bg } },
-      h('div', { style: { maxWidth: "480px", margin: "0 auto", padding: "0 14px 56px" } },
-        h('div', { style: { padding: "32px 0 24px", textAlign: "center" } },
-          h('div', { style: { fontSize: "10px", letterSpacing: "0.25em", color: C.accent, fontFamily: "'DM Mono', monospace", marginBottom: "10px" }}, "◆"),
-          h('h2', { style: { fontSize: "30px", fontFamily: "'Playfair Display', serif", color: C.text, fontWeight: "400", marginBottom: "8px" }}, "Your Baseline"),
-          h('p', { style: { fontSize: "12px", color: C.dim1, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em" }}, "Share this screen with your partner")
-        ),
-        h('div', { style: { display: "flex", flexDirection: "column", gap: "5px", marginBottom: "28px" } },
-          props.items.map(function(cat, i) {
-            var ad = props.assessments[cat.id] || {};
-            var w = null, a = null;
-            for (var wi = 0; wi < WEIGHTS.length; wi++) { if (WEIGHTS[wi].value === ad.weight) { w = WEIGHTS[wi]; break; } }
-            for (var ai = 0; ai < ATTRIBUTIONS.length; ai++) { if (ATTRIBUTIONS[ai].value === ad.attribution) { a = ATTRIBUTIONS[ai]; break; } }
-            return h('div', { key: cat.id, style: {
-              display: "flex", alignItems: "center", padding: "13px 16px", gap: "12px",
-              background: C.surface, border: "1px solid " + C.border1, borderRadius: "8px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-            }},
-              h('span', { style: { color: C.accent, fontSize: "11px", fontFamily: "'DM Mono', monospace", minWidth: "20px" }},
-                String(i+1).padStart(2,"0")
-              ),
-              h('span', { style: { flex: "1", color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif" }},
-                cat.label
-              ),
-              h('div', { style: { display: "flex", alignItems: "center", gap: "14px" } },
-                w ? h(BarIcon, { count: w.bars, active: true }) : null,
-                a ? h(CircleIcon, { type: a.value, active: true }) : null
-              )
-            );
-          })
-        ),
-        h('div', { style: {
-          padding: "18px", background: C.accentBg,
-          border: "1px solid " + C.border1, borderRadius: "10px",
-          marginBottom: "22px", textAlign: "center"
-        }},
-          h('p', { style: { color: C.dim1, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "1.9", letterSpacing: "0.04em" }},
-            "Want to explore your results together?", h('br', null), "Screenshot this screen and share it with Claude."
-          )
-        ),
-        h('div', { style: { display: "flex", flexWrap: "wrap", gap: "10px 16px", justifyContent: "center", marginBottom: "24px" } },
-          WEIGHTS.map(function(w) {
-            return h('div', { key: w.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
-              h(BarIcon, { count: w.bars, active: true }),
-              h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace" }}, w.label)
-            );
-          }).concat([h('div', { key: "div", style: { width: "1px", background: C.border1, alignSelf: "stretch" } })]).concat(
-            ATTRIBUTIONS.map(function(a) {
-              return h('div', { key: a.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
-                h(CircleIcon, { type: a.value, active: true }),
-                h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}, a.label)
-              );
-            })
-          )
-        ),
-        h('button', {
-          onClick: props.onReset,
-          style: {
-            width: "100%", padding: "15px", background: "transparent",
-            border: "1.5px solid " + C.border1, borderRadius: "10px", color: C.dim1,
-            fontSize: "11px", fontFamily: "'DM Mono', monospace",
-            letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer"
-          }
-        }, "Start Over")
-      )
-    );
+function renderResults() {
+  var list = document.getElementById('result-list');
+  var html = '';
+  for (var i = 0; i < order.length; i++) {
+    var catId = order[i];
+    var cat = null;
+    for (var ci = 0; ci < CATEGORIES.length; ci++) { if (CATEGORIES[ci].id === catId) { cat = CATEGORIES[ci]; break; } }
+    var a = assessments[catId] || {};
+    var w = null, attr = null;
+    for (var wi = 0; wi < WEIGHTS.length; wi++) { if (WEIGHTS[wi].value === a.weight) { w = WEIGHTS[wi]; break; } }
+    for (var ai = 0; ai < ATTRIBUTIONS.length; ai++) { if (ATTRIBUTIONS[ai].value === a.attribution) { attr = ATTRIBUTIONS[ai]; break; } }
+    html += '<div class="result-row">' +
+      '<span class="result-num">' + pad(i+1) + '</span>' +
+      '<span class="result-label">' + cat.label + '</span>' +
+      '<div class="result-icons">' +
+        (w ? barsSVG(w.bars, true) : '') +
+        (attr ? circleSVG(attr.value, true) : '') +
+      '</div>' +
+    '</div>';
   }
+  list.innerHTML = html;
 
-  function App() {
-    var s1 = useState("intro"),   screen = s1[0],      setScreen = s1[1];
-    var s2 = useState(CATEGORIES), items = s2[0],       setItems  = s2[1];
-    var s3 = useState({}),  assessments = s3[0], setAssessments  = s3[1];
-
-    function handleWeight(id, v) {
-      setAssessments(function(prev) {
-        var n = {}; for (var k in prev) n[k] = prev[k];
-        n[id] = {}; for (var k in (prev[id]||{})) n[id][k] = prev[id][k];
-        n[id].weight = v; return n;
-      });
-    }
-    function handleAttribution(id, v) {
-      setAssessments(function(prev) {
-        var n = {}; for (var k in prev) n[k] = prev[k];
-        n[id] = {}; for (var k in (prev[id]||{})) n[id][k] = prev[id][k];
-        n[id].attribution = v; return n;
-      });
-    }
-    function handleReset() { setItems(CATEGORIES); setAssessments({}); setScreen("intro"); }
-
-    if (screen === "intro")   return h(IntroScreen,   { onBegin: function() { setScreen("assessment"); } });
-    if (screen === "results") return h(ResultsScreen, { items: items, assessments: assessments, onReset: handleReset });
-    return h(AssessmentScreen, {
-      items: items, assessments: assessments,
-      onReorder: setItems, onWeightChange: handleWeight,
-      onAttributionChange: handleAttribution,
-      onViewResults: function() { setScreen("results"); }
-    });
+  var legend = document.getElementById('legend');
+  var lhtml = '';
+  for (var wi = 0; wi < WEIGHTS.length; wi++) {
+    lhtml += '<div class="legend-item">' + barsSVG(WEIGHTS[wi].bars, true) + '<span>' + WEIGHTS[wi].label + '</span></div>';
   }
+  lhtml += '<div class="legend-divider"></div>';
+  for (var ai = 0; ai < ATTRIBUTIONS.length; ai++) {
+    lhtml += '<div class="legend-item">' + circleSVG(ATTRIBUTIONS[ai].value, true) + '<span>' + ATTRIBUTIONS[ai].label + '</span></div>';
+  }
+  legend.innerHTML = lhtml;
 
-  ReactDOM.render(h(App, null), document.getElementById("root"));
-})();
+  showScreen('results');
+}
+
+function resetApp() {
+  order = CATEGORIES.map(function(c) { return c.id; });
+  assessments = {};
+  renderCards();
+  showScreen('intro');
+}
+
+// Init
+renderCards();
+showScreen('intro');
 </script>
 </body>
 </html>
