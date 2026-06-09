@@ -11,7 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #F5F0E8; color: #2a2420; -webkit-font-smoothing: antialiased; font-size: 16px; }
     #root { height: 100%; }
-    button { -webkit-tap-highlight-color: transparent; font-family: inherit; }
+    button { -webkit-tap-highlight-color: transparent; font-family: inherit; border: none; outline: none; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: #F5F0E8; }
     ::-webkit-scrollbar-thumb { background: #d9d0c0; border-radius: 2px; }
@@ -19,11 +19,13 @@
 </head>
 <body>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
 <script>
 (function() {
   var h = React.createElement;
+  var useState = React.useState;
+  var useRef = React.useRef;
 
   var CATEGORIES = [
     { id: "connection",    label: "Connection",        description: "How emotional closeness and romantic attention show up in a relationship." },
@@ -65,82 +67,72 @@
   };
 
   function BarIcon(props) {
-    var count = props.count, active = props.active;
     return h('div', { style: { display: "flex", gap: "3px", alignItems: "flex-end", height: "20px" } },
       [1,2,3].map(function(i) {
+        var isActive = i <= props.count;
         return h('div', { key: i, style: {
           width: "4px",
           height: i === 1 ? "9px" : i === 2 ? "14px" : "20px",
-          background: i <= count ? (active ? C.accent : C.dim2) : "transparent",
-          border: "1.5px solid " + (i <= count ? (active ? C.accent : C.dim2) : C.border1),
-          borderRadius: "1px",
-          transition: "all 0.15s ease"
+          background: isActive ? (props.active ? C.accent : C.dim2) : "transparent",
+          border: "1.5px solid " + (isActive ? (props.active ? C.accent : C.dim2) : C.border1),
+          borderRadius: "1px"
         }});
       })
     );
   }
 
   function CircleIcon(props) {
-    var type = props.type, active = props.active;
-    var col = active ? C.accent : C.dim2;
-    if (type === "me") {
-      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20" },
+    var col = props.active ? C.accent : C.dim2;
+    if (props.type === "me") {
+      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg" },
         h('circle', { cx: "10", cy: "10", r: "8", fill: col })
       );
     }
-    if (type === "partner") {
-      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20" },
+    if (props.type === "partner") {
+      return h('svg', { width: "20", height: "20", viewBox: "0 0 20 20", xmlns: "http://www.w3.org/2000/svg" },
         h('circle', { cx: "10", cy: "10", r: "7.5", fill: "none", stroke: col, strokeWidth: "2" })
       );
     }
-    if (type === "us") {
-      return h('svg', { width: "32", height: "20", viewBox: "0 0 32 20" },
-        h('circle', { cx: "10", cy: "10", r: "7.5", fill: active ? C.accent : "none", fillOpacity: active ? "0.7" : "0", stroke: col, strokeWidth: "2" }),
-        h('circle', { cx: "22", cy: "10", r: "7.5", fill: active ? C.accent : "none", fillOpacity: active ? "0.4" : "0", stroke: col, strokeWidth: "2" })
+    if (props.type === "us") {
+      return h('svg', { width: "32", height: "20", viewBox: "0 0 32 20", xmlns: "http://www.w3.org/2000/svg" },
+        h('circle', { cx: "10", cy: "10", r: "7.5", fill: props.active ? C.accent : "none", fillOpacity: props.active ? "0.7" : "0", stroke: col, strokeWidth: "2" }),
+        h('circle', { cx: "22", cy: "10", r: "7.5", fill: props.active ? C.accent : "none", fillOpacity: props.active ? "0.4" : "0", stroke: col, strokeWidth: "2" })
       );
     }
     return null;
   }
 
-  function Selector(props) {
-    var options = props.options, value = props.value, onChange = props.onChange, renderIcon = props.renderIcon;
-    return h('div', { style: { display: "flex", gap: "6px" } },
-      options.map(function(opt) {
-        var active = value === opt.value;
-        return h('button', {
-          key: opt.value,
-          onClick: function() { onChange(opt.value); },
-          style: {
-            display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-            padding: "10px 8px",
-            background: active ? C.accentBg : C.bg,
-            border: "1.5px solid " + (active ? C.accent : C.border1),
-            borderRadius: "8px",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-            flex: "1",
-            minWidth: "0"
-          }
-        },
-          renderIcon(opt, active),
-          h('span', { style: {
-            fontSize: "10px", letterSpacing: "0.07em",
-            color: active ? C.accent : C.dim1,
-            textTransform: "uppercase",
-            fontFamily: "'DM Mono', monospace",
-            whiteSpace: "nowrap",
-            fontWeight: "400"
-          }}, opt.label)
-        );
-      })
+  function OptionButton(props) {
+    var active = props.active;
+    return h('button', {
+      onClick: props.onClick,
+      style: {
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+        padding: "10px 8px",
+        background: active ? C.accentBg : C.bg,
+        border: "1.5px solid " + (active ? C.accent : C.border1),
+        borderRadius: "8px",
+        cursor: "pointer",
+        flex: "1",
+        minWidth: "0"
+      }
+    },
+      props.icon,
+      h('span', { style: {
+        fontSize: "10px", letterSpacing: "0.07em",
+        color: active ? C.accent : C.dim1,
+        textTransform: "uppercase",
+        fontFamily: "'DM Mono', monospace",
+        whiteSpace: "nowrap"
+      }}, props.label)
     );
   }
 
   function CategoryCard(props) {
-    var cat = props.cat, index = props.index, assessment = props.assessment;
-    var onWeightChange = props.onWeightChange, onAttributionChange = props.onAttributionChange;
-    var dragging = props.dragging;
-    var dragHandlers = {
+    var cat = props.cat;
+    var assessment = props.assessment || {};
+
+    return h('div', {
       draggable: true,
       onDragStart: props.onDragStart,
       onDragEnter: props.onDragEnter,
@@ -148,135 +140,121 @@
       onDragOver: function(e) { e.preventDefault(); },
       onTouchStart: props.onTouchStart,
       onTouchMove: props.onTouchMove,
-      onTouchEnd: props.onTouchEnd
-    };
-
-    return h('div', Object.assign({}, dragHandlers, { style: {
-      background: C.surface,
-      border: "1.5px solid " + (dragging ? C.accent : C.border1),
-      borderRadius: "12px",
-      overflow: "hidden",
-      opacity: dragging ? 0.5 : 1,
-      transition: "opacity 0.15s ease, border-color 0.15s ease",
-      touchAction: "none",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.07)"
-    }}),
+      onTouchEnd: props.onTouchEnd,
+      style: {
+        background: C.surface,
+        border: "1.5px solid " + (props.dragging ? C.accent : C.border1),
+        borderRadius: "12px",
+        overflow: "hidden",
+        opacity: props.dragging ? 0.5 : 1,
+        touchAction: "none",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.07)"
+      }
+    },
       h('div', { style: {
         display: "flex", alignItems: "center",
         padding: "14px 16px", gap: "12px",
         borderBottom: "1px solid " + C.border2
       }},
-        h('span', { style: { color: C.accent, fontSize: "11px", fontFamily: "'DM Mono', monospace", minWidth: "20px", fontWeight: "400" }},
-          String(index + 1).padStart(2, "0")
+        h('span', { style: { color: C.accent, fontSize: "11px", fontFamily: "'DM Mono', monospace", minWidth: "20px" }},
+          String(props.index + 1).padStart(2, "0")
         ),
         h('div', { style: { flex: "1" } },
-          h('div', { style: { color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif", letterSpacing: "0.02em", marginBottom: "3px", fontWeight: "400" }},
+          h('div', { style: { color: C.text, fontSize: "16px", fontFamily: "'Playfair Display', serif", marginBottom: "3px" }},
             cat.label
           ),
-          h('div', { style: { color: C.dim2, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "1.5", letterSpacing: "0.02em" }},
+          h('div', { style: { color: C.dim2, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "1.5" }},
             cat.description
           )
         ),
-        h('div', { style: { color: C.dim3, fontSize: "16px", userSelect: "none", cursor: "grab", padding: "0 2px" }}, "⠿")
+        h('div', { style: { color: C.dim3, fontSize: "18px", userSelect: "none", cursor: "grab" }}, "⠿")
       ),
-      h('div', { style: { padding: "12px 16px 14px", display: "flex", flexDirection: "column", gap: "8px", background: C.bg }},
-        h(Selector, {
-          options: WEIGHTS,
-          value: assessment.weight || null,
-          onChange: function(v) { onWeightChange(cat.id, v); },
-          renderIcon: function(opt, active) { return h(BarIcon, { count: opt.bars, active: active }); }
-        }),
-        h(Selector, {
-          options: ATTRIBUTIONS,
-          value: assessment.attribution || null,
-          onChange: function(v) { onAttributionChange(cat.id, v); },
-          renderIcon: function(opt, active) { return h(CircleIcon, { type: opt.value, active: active }); }
-        })
+      h('div', { style: { padding: "12px 16px 14px", background: C.bg, display: "flex", flexDirection: "column", gap: "8px" }},
+        h('div', { style: { display: "flex", gap: "6px" } },
+          WEIGHTS.map(function(w) {
+            var active = assessment.weight === w.value;
+            return h(OptionButton, {
+              key: w.value,
+              active: active,
+              onClick: function() { props.onWeightChange(cat.id, w.value); },
+              icon: h(BarIcon, { count: w.bars, active: active }),
+              label: w.label
+            });
+          })
+        ),
+        h('div', { style: { display: "flex", gap: "6px" } },
+          ATTRIBUTIONS.map(function(a) {
+            var active = assessment.attribution === a.value;
+            return h(OptionButton, {
+              key: a.value,
+              active: active,
+              onClick: function() { props.onAttributionChange(cat.id, a.value); },
+              icon: h(CircleIcon, { type: a.value, active: active }),
+              label: a.label
+            });
+          })
+        )
       )
     );
   }
 
   function DraggableList(props) {
-    var items = props.items, assessments = props.assessments;
-    var onReorder = props.onReorder, onWeightChange = props.onWeightChange, onAttributionChange = props.onAttributionChange;
+    var dragItem     = useRef(null);
+    var dragOverItem = useRef(null);
+    var touchItem    = useRef(null);
+    var itemRefs     = useRef([]);
+    var draggingState = useState(null);
+    var draggingIndex = draggingState[0];
+    var setDraggingIndex = draggingState[1];
 
-    var dragItem     = React.useRef(null);
-    var dragOverItem = React.useRef(null);
-    var touchItem    = React.useRef(null);
-    var itemRefs     = React.useRef([]);
-    var draggingIndex = React.useState(null);
-    var setDraggingIndex = draggingIndex[1];
-    draggingIndex = draggingIndex[0];
-
-    function handleDragStart(i) { dragItem.current = i; setDraggingIndex(i); }
-    function handleDragEnter(i) { dragOverItem.current = i; }
-    function handleDragEnd() {
-      if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
-        var next = items.slice();
-        var moved = next.splice(dragItem.current, 1)[0];
-        next.splice(dragOverItem.current, 0, moved);
-        onReorder(next);
-      }
-      dragItem.current = null; dragOverItem.current = null; setDraggingIndex(null);
-    }
-    function handleTouchStart(i, e) { touchItem.current = i; }
-    function handleTouchMove(i, e) {
-      e.preventDefault();
-      var y = e.touches[0].clientY;
-      itemRefs.current.forEach(function(ref, idx) {
-        if (!ref) return;
-        var rect = ref.getBoundingClientRect();
-        if (y >= rect.top && y <= rect.bottom) dragOverItem.current = idx;
-      });
-    }
-    function handleTouchEnd() {
-      if (touchItem.current !== null && dragOverItem.current !== null && touchItem.current !== dragOverItem.current) {
-        var next = items.slice();
-        var moved = next.splice(touchItem.current, 1)[0];
-        next.splice(dragOverItem.current, 0, moved);
-        onReorder(next);
-      }
-      touchItem.current = null; dragOverItem.current = null;
+    function doReorder(from, to) {
+      if (from === null || to === null || from === to) return;
+      var next = props.items.slice();
+      var moved = next.splice(from, 1)[0];
+      next.splice(to, 0, moved);
+      props.onReorder(next);
     }
 
     return h('div', { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-      items.map(function(cat, i) {
-        return h('div', { key: cat.id, ref: function(el) { itemRefs.current[i] = el; } },
+      props.items.map(function(cat, i) {
+        return h('div', {
+          key: cat.id,
+          ref: function(el) { itemRefs.current[i] = el; }
+        },
           h(CategoryCard, {
-            cat: cat, index: i,
-            assessment: assessments[cat.id] || {},
-            onWeightChange: onWeightChange,
-            onAttributionChange: onAttributionChange,
+            cat: cat,
+            index: i,
+            assessment: props.assessments[cat.id],
+            onWeightChange: props.onWeightChange,
+            onAttributionChange: props.onAttributionChange,
             dragging: draggingIndex === i,
-            onDragStart: function() { handleDragStart(i); },
-            onDragEnter: function() { handleDragEnter(i); },
-            onDragEnd: handleDragEnd,
-            onTouchStart: function(e) { handleTouchStart(i, e); },
-            onTouchMove: function(e) { handleTouchMove(i, e); },
-            onTouchEnd: handleTouchEnd
+            onDragStart: function() { dragItem.current = i; setDraggingIndex(i); },
+            onDragEnter: function() { dragOverItem.current = i; },
+            onDragEnd: function() {
+              doReorder(dragItem.current, dragOverItem.current);
+              dragItem.current = null; dragOverItem.current = null; setDraggingIndex(null);
+            },
+            onTouchStart: function(e) {
+              touchItem.current = i;
+              dragOverItem.current = i;
+            },
+            onTouchMove: function(e) {
+              e.preventDefault();
+              var y = e.touches[0].clientY;
+              for (var idx = 0; idx < itemRefs.current.length; idx++) {
+                var ref = itemRefs.current[idx];
+                if (!ref) continue;
+                var rect = ref.getBoundingClientRect();
+                if (y >= rect.top && y <= rect.bottom) { dragOverItem.current = idx; break; }
+              }
+            },
+            onTouchEnd: function() {
+              doReorder(touchItem.current, dragOverItem.current);
+              touchItem.current = null; dragOverItem.current = null;
+            }
           })
         );
       })
-    );
-  }
-
-  function Legend() {
-    return h('div', { style: { display: "flex", flexWrap: "wrap", gap: "10px 16px", justifyContent: "center" } },
-      WEIGHTS.map(function(w) {
-        return h('div', { key: w.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
-          h(BarIcon, { count: w.bars, active: true }),
-          h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em" }}, w.label)
-        );
-      }).concat([
-        h('div', { key: "divider", style: { width: "1px", background: C.border1, alignSelf: "stretch" } })
-      ]).concat(
-        ATTRIBUTIONS.map(function(a) {
-          return h('div', { key: a.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
-            h(CircleIcon, { type: a.value, active: true }),
-            h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", whiteSpace: "nowrap" }}, a.label)
-          );
-        })
-      )
     );
   }
 
@@ -288,29 +266,27 @@
     }},
       h('div', { style: { maxWidth: "340px", width: "100%", textAlign: "center" } },
         h('div', { style: { fontSize: "11px", letterSpacing: "0.3em", color: C.dim3, fontFamily: "'DM Mono', monospace", marginBottom: "20px" }}, "◆"),
-        h('h1', { style: { fontSize: "56px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em", marginBottom: "14px", fontWeight: "400" }},
+        h('h1', { style: { fontSize: "56px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em", marginBottom: "14px", fontWeight: "400", lineHeight: "1" }},
           "Baseline"
         ),
-        h('p', { style: { color: C.dim1, fontSize: "13px", fontFamily: "'DM Mono', monospace", lineHeight: "2.2", letterSpacing: "0.06em", marginBottom: "40px" }},
-          "Eleven categories.", h('br'), "Three inputs each.", h('br'), "One honest conversation."
+        h('p', { style: { color: C.dim1, fontSize: "13px", fontFamily: "'DM Mono', monospace", lineHeight: "2.2", letterSpacing: "0.05em", marginBottom: "40px" }},
+          "Eleven categories.", h('br', null), "Three inputs each.", h('br', null), "One honest conversation."
         ),
         h('div', { style: {
-          display: "flex", flexDirection: "column", gap: "14px",
-          marginBottom: "40px", textAlign: "left",
-          padding: "22px", background: C.surface,
+          display: "flex", flexDirection: "column", gap: "14px", marginBottom: "40px",
+          textAlign: "left", padding: "22px", background: C.surface,
           border: "1px solid " + C.border1, borderRadius: "12px",
           boxShadow: "0 1px 4px rgba(0,0,0,0.07)"
         }},
-          [
-            "Rank categories by dragging them into your order of importance.",
-            "For each category, select a weight and an attribution.",
-            "Complete privately. Share your screen when ready."
+          ["Rank categories by dragging them into your order of importance.",
+           "For each category, select a weight and an attribution.",
+           "Complete privately. Share your screen when ready."
           ].map(function(step, i) {
             return h('div', { key: i, style: { display: "flex", gap: "14px", alignItems: "flex-start" } },
-              h('span', { style: { color: C.accent, fontFamily: "'DM Mono', monospace", fontSize: "11px", minWidth: "20px", paddingTop: "1px" }},
+              h('span', { style: { color: C.accent, fontFamily: "'DM Mono', monospace", fontSize: "11px", minWidth: "20px", paddingTop: "2px" }},
                 String(i+1).padStart(2,"0")
               ),
-              h('span', { style: { color: C.dim1, fontFamily: "'DM Mono', monospace", fontSize: "12px", lineHeight: "1.7", letterSpacing: "0.03em" }},
+              h('span', { style: { color: C.dim1, fontFamily: "'DM Mono', monospace", fontSize: "12px", lineHeight: "1.7" }},
                 step
               )
             );
@@ -320,7 +296,7 @@
           onClick: props.onBegin,
           style: {
             width: "100%", padding: "18px",
-            background: C.accent, border: "none", borderRadius: "10px",
+            background: C.accent, borderRadius: "10px",
             color: "#fff", fontSize: "11px", fontFamily: "'DM Mono', monospace",
             letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer",
             boxShadow: "0 2px 10px rgba(184,92,56,0.35)"
@@ -331,28 +307,30 @@
   }
 
   function AssessmentScreen(props) {
-    var items = props.items, assessments = props.assessments;
-    var completed  = items.filter(function(cat) { return assessments[cat.id] && assessments[cat.id].weight && assessments[cat.id].attribution; }).length;
-    var isComplete = completed === items.length;
+    var completed  = props.items.filter(function(cat) {
+      var a = props.assessments[cat.id];
+      return a && a.weight && a.attribution;
+    }).length;
+    var isComplete = completed === props.items.length;
 
     return h('div', { style: { minHeight: "100vh", background: C.bg } },
       h('div', { style: { maxWidth: "480px", margin: "0 auto", padding: "0 14px 130px" } },
         h('div', { style: {
-          padding: "20px 0 16px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "20px 0 16px", display: "flex", alignItems: "center", justifyContent: "space-between",
           borderBottom: "1px solid " + C.border1, marginBottom: "16px",
           position: "sticky", top: "0", background: C.bg, zIndex: "10"
         }},
-          h('span', { style: { fontSize: "18px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em" }}, "Baseline"),
-          h('span', { style: { fontSize: "11px", fontFamily: "'DM Mono', monospace", color: isComplete ? C.accent : C.dim3, letterSpacing: "0.1em", transition: "color 0.3s" }},
-            completed + " / " + items.length
+          h('span', { style: { fontSize: "18px", fontFamily: "'Playfair Display', serif", color: C.text }}, "Baseline"),
+          h('span', { style: { fontSize: "11px", fontFamily: "'DM Mono', monospace", color: isComplete ? C.accent : C.dim3 }},
+            completed + " / " + props.items.length
           )
         ),
         h('div', { style: { fontSize: "10px", color: C.dim3, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", marginBottom: "14px" }},
           "DRAG TO RANK · TAP TO SELECT"
         ),
         h(DraggableList, {
-          items: items, assessments: assessments,
+          items: props.items,
+          assessments: props.assessments,
           onReorder: props.onReorder,
           onWeightChange: props.onWeightChange,
           onAttributionChange: props.onAttributionChange
@@ -360,7 +338,7 @@
       ),
       h('div', { style: {
         position: "fixed", bottom: "0", left: "0", right: "0",
-        padding: "16px 20px 28px",
+        padding: "16px 20px 32px",
         background: "linear-gradient(to top, " + C.bg + " 65%, transparent)",
         display: "flex", justifyContent: "center"
       }},
@@ -375,31 +353,29 @@
             fontSize: "11px", fontFamily: "'DM Mono', monospace",
             letterSpacing: "0.18em", textTransform: "uppercase",
             cursor: isComplete ? "pointer" : "default",
-            transition: "all 0.3s ease",
             boxShadow: isComplete ? "0 2px 10px rgba(184,92,56,0.35)" : "none"
           }
-        }, isComplete ? "View Results" : (items.length - completed) + " categories remaining")
+        }, isComplete ? "View Results" : (props.items.length - completed) + " categories remaining")
       )
     );
   }
 
   function ResultsScreen(props) {
-    var items = props.items, assessments = props.assessments;
     return h('div', { style: { minHeight: "100vh", background: C.bg } },
-      h('div', { style: { maxWidth: "480px", margin: "0 auto", padding: "0 14px 48px" } },
+      h('div', { style: { maxWidth: "480px", margin: "0 auto", padding: "0 14px 56px" } },
         h('div', { style: { padding: "32px 0 24px", textAlign: "center" } },
           h('div', { style: { fontSize: "10px", letterSpacing: "0.25em", color: C.accent, fontFamily: "'DM Mono', monospace", marginBottom: "10px" }}, "◆"),
           h('h2', { style: { fontSize: "30px", fontFamily: "'Playfair Display', serif", color: C.text, fontWeight: "400", marginBottom: "8px" }}, "Your Baseline"),
           h('p', { style: { fontSize: "12px", color: C.dim1, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em" }}, "Share this screen with your partner")
         ),
         h('div', { style: { display: "flex", flexDirection: "column", gap: "5px", marginBottom: "28px" } },
-          items.map(function(cat, i) {
-            var a_data = assessments[cat.id] || {};
-            var w = WEIGHTS.find(function(x) { return x.value === a_data.weight; });
-            var a = ATTRIBUTIONS.find(function(x) { return x.value === a_data.attribution; });
+          props.items.map(function(cat, i) {
+            var ad = props.assessments[cat.id] || {};
+            var w = null, a = null;
+            for (var wi = 0; wi < WEIGHTS.length; wi++) { if (WEIGHTS[wi].value === ad.weight) { w = WEIGHTS[wi]; break; } }
+            for (var ai = 0; ai < ATTRIBUTIONS.length; ai++) { if (ATTRIBUTIONS[ai].value === ad.attribution) { a = ATTRIBUTIONS[ai]; break; } }
             return h('div', { key: cat.id, style: {
-              display: "flex", alignItems: "center",
-              padding: "13px 16px", gap: "12px",
+              display: "flex", alignItems: "center", padding: "13px 16px", gap: "12px",
               background: C.surface, border: "1px solid " + C.border1, borderRadius: "8px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
             }},
@@ -422,16 +398,29 @@
           marginBottom: "22px", textAlign: "center"
         }},
           h('p', { style: { color: C.dim1, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "1.9", letterSpacing: "0.04em" }},
-            "Want to explore your results together?", h('br'), "Screenshot this screen and share it with Claude."
+            "Want to explore your results together?", h('br', null), "Screenshot this screen and share it with Claude."
           )
         ),
-        h('div', { style: { marginBottom: "24px" } }, h(Legend)),
+        h('div', { style: { display: "flex", flexWrap: "wrap", gap: "10px 16px", justifyContent: "center", marginBottom: "24px" } },
+          WEIGHTS.map(function(w) {
+            return h('div', { key: w.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
+              h(BarIcon, { count: w.bars, active: true }),
+              h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace" }}, w.label)
+            );
+          }).concat([h('div', { key: "div", style: { width: "1px", background: C.border1, alignSelf: "stretch" } })]).concat(
+            ATTRIBUTIONS.map(function(a) {
+              return h('div', { key: a.value, style: { display: "flex", alignItems: "center", gap: "7px" } },
+                h(CircleIcon, { type: a.value, active: true }),
+                h('span', { style: { color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}, a.label)
+              );
+            })
+          )
+        ),
         h('button', {
           onClick: props.onReset,
           style: {
-            width: "100%", padding: "15px",
-            background: "transparent", border: "1.5px solid " + C.border1,
-            borderRadius: "10px", color: C.dim1,
+            width: "100%", padding: "15px", background: "transparent",
+            border: "1.5px solid " + C.border1, borderRadius: "10px", color: C.dim1,
             fontSize: "11px", fontFamily: "'DM Mono', monospace",
             letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer"
           }
@@ -441,41 +430,37 @@
   }
 
   function App() {
-    var screenState      = React.useState("intro");
-    var screen           = screenState[0], setScreen = screenState[1];
-    var itemsState       = React.useState(CATEGORIES);
-    var items            = itemsState[0], setItems = itemsState[1];
-    var assessmentsState = React.useState({});
-    var assessments      = assessmentsState[0], setAssessments = assessmentsState[1];
+    var s1 = useState("intro"),   screen = s1[0],      setScreen = s1[1];
+    var s2 = useState(CATEGORIES), items = s2[0],       setItems  = s2[1];
+    var s3 = useState({}),  assessments = s3[0], setAssessments  = s3[1];
 
-    function handleWeightChange(id, v) {
+    function handleWeight(id, v) {
       setAssessments(function(prev) {
-        var next = Object.assign({}, prev);
-        next[id] = Object.assign({}, prev[id] || {}, { weight: v });
-        return next;
+        var n = {}; for (var k in prev) n[k] = prev[k];
+        n[id] = {}; for (var k in (prev[id]||{})) n[id][k] = prev[id][k];
+        n[id].weight = v; return n;
       });
     }
-    function handleAttributionChange(id, v) {
+    function handleAttribution(id, v) {
       setAssessments(function(prev) {
-        var next = Object.assign({}, prev);
-        next[id] = Object.assign({}, prev[id] || {}, { attribution: v });
-        return next;
+        var n = {}; for (var k in prev) n[k] = prev[k];
+        n[id] = {}; for (var k in (prev[id]||{})) n[id][k] = prev[id][k];
+        n[id].attribution = v; return n;
       });
     }
     function handleReset() { setItems(CATEGORIES); setAssessments({}); setScreen("intro"); }
 
-    if (screen === "intro")   return h(IntroScreen, { onBegin: function() { setScreen("assessment"); } });
+    if (screen === "intro")   return h(IntroScreen,   { onBegin: function() { setScreen("assessment"); } });
     if (screen === "results") return h(ResultsScreen, { items: items, assessments: assessments, onReset: handleReset });
     return h(AssessmentScreen, {
       items: items, assessments: assessments,
-      onReorder: setItems,
-      onWeightChange: handleWeightChange,
-      onAttributionChange: handleAttributionChange,
+      onReorder: setItems, onWeightChange: handleWeight,
+      onAttributionChange: handleAttribution,
       onViewResults: function() { setScreen("results"); }
     });
   }
 
-  ReactDOM.createRoot(document.getElementById("root")).render(h(App, null));
+  ReactDOM.render(h(App, null), document.getElementById("root"));
 })();
 </script>
 </body>
