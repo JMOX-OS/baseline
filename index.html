@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Baseline</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #F5F0E8; color: #2a2420; -webkit-font-smoothing: antialiased; }
+    #root { height: 100%; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #F5F0E8; }
+    ::-webkit-scrollbar-thumb { background: #d9d0c0; border-radius: 2px; }
+    button { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    const CATEGORIES = [
+      { id: "connection",    label: "Connection",        description: "How emotional closeness and romantic attention show up in a relationship." },
+      { id: "sex",           label: "Sex",               description: "The role of physical intimacy, frequency, and compatibility." },
+      { id: "children",      label: "Children",          description: "Whether to have them, how many, and the role they play in a shared future." },
+      { id: "family",        label: "Family",            description: "The place of extended family in daily life and major decisions." },
+      { id: "religion",      label: "Religion",          description: "The role of faith, practice, and spiritual life in the relationship." },
+      { id: "politics",      label: "Politics & Values", description: "Alignment or tolerance of difference on worldview, beliefs, and civic life." },
+      { id: "financials",    label: "Financials",        description: "How money is earned, managed, and planned for." },
+      { id: "home",          label: "Home & Daily Life", description: "Environment, habits, pace, and the texture of everyday living." },
+      { id: "career",        label: "Career",            description: "The priority of professional ambition and how it shapes shared life." },
+      { id: "location",      label: "Location",          description: "Where you live, and how fixed or flexible that is." },
+      { id: "communication", label: "Communication",     description: "How needs, conflict, and difference get expressed and resolved." },
+    ];
+
+    const WEIGHTS = [
+      { value: "essential", label: "Essential", bars: 3 },
+      { value: "important", label: "Important", bars: 2 },
+      { value: "flexible",  label: "Flexible",  bars: 1 },
+    ];
+
+    const ATTRIBUTIONS = [
+      { value: "me",      label: "Me" },
+      { value: "partner", label: "My Partner" },
+      { value: "us",      label: "Us Together" },
+    ];
+
+    const C = {
+      bg:       "#F5F0E8",
+      surface:  "#FDFAF4",
+      border1:  "#DDD6C8",
+      border2:  "#EAE4D8",
+      text:     "#2a2420",
+      accent:   "#B85C38",
+      accentBg: "#F7EDE7",
+      dim1:     "#7a6f65",
+      dim2:     "#a09588",
+      dim3:     "#c4bab0",
+    };
+
+    function BarIcon({ count, active }) {
+      return (
+        <div style={{ display: "flex", gap: "3px", alignItems: "flex-end", height: "18px" }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              width: "3px",
+              height: i === 1 ? "8px" : i === 2 ? "12px" : "17px",
+              background: i <= count ? (active ? C.accent : C.dim2) : "transparent",
+              border: `1px solid ${i <= count ? (active ? C.accent : C.dim2) : C.border1}`,
+              borderRadius: "1px",
+              opacity: i <= count ? 1 : 0.3,
+              transition: "all 0.15s ease",
+            }} />
+          ))}
+        </div>
+      );
+    }
+
+    function CircleIcon({ type, active }) {
+      const col = active ? C.accent : C.dim2;
+      if (type === "me") return (
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <circle cx="9" cy="9" r="7" fill={col} />
+        </svg>
+      );
+      if (type === "partner") return (
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <circle cx="9" cy="9" r="6.5" fill="none" stroke={col} strokeWidth="1.5" />
+        </svg>
+      );
+      if (type === "us") return (
+        <svg width="28" height="18" viewBox="0 0 28 18">
+          <circle cx="9"  cy="9" r="6.5" fill={active ? C.accent : "none"} fillOpacity={active ? 0.7 : 0} stroke={col} strokeWidth="1.5" />
+          <circle cx="19" cy="9" r="6.5" fill={active ? C.accent : "none"} fillOpacity={active ? 0.4 : 0} stroke={col} strokeWidth="1.5" />
+        </svg>
+      );
+      return null;
+    }
+
+    function Selector({ options, value, onChange, renderIcon }) {
+      return (
+        <div style={{ display: "flex", gap: "6px" }}>
+          {options.map(opt => {
+            const active = value === opt.value;
+            return (
+              <button key={opt.value} onClick={() => onChange(opt.value)} style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: "5px",
+                padding: "9px 10px",
+                background: active ? C.accentBg : C.bg,
+                border: `1px solid ${active ? C.accent : C.border1}`,
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                flex: 1,
+              }}>
+                {renderIcon(opt, active)}
+                <span style={{
+                  fontSize: "8px", letterSpacing: "0.08em",
+                  color: active ? C.accent : C.dim1,
+                  textTransform: "uppercase",
+                  fontFamily: "'DM Mono', monospace",
+                  whiteSpace: "nowrap",
+                }}>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function CategoryCard({ cat, index, assessment, onWeightChange, onAttributionChange,
+                            dragging, onDragStart, onDragEnter, onDragEnd,
+                            onTouchStart, onTouchMove, onTouchEnd }) {
+      return (
+        <div
+          draggable
+          onDragStart={onDragStart}
+          onDragEnter={onDragEnter}
+          onDragEnd={onDragEnd}
+          onDragOver={e => e.preventDefault()}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          style={{
+            background: C.surface,
+            border: `1px solid ${dragging ? C.accent : C.border1}`,
+            borderRadius: "10px",
+            overflow: "hidden",
+            opacity: dragging ? 0.5 : 1,
+            transition: "opacity 0.15s ease, border-color 0.15s ease",
+            touchAction: "none",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}
+        >
+          <div style={{
+            display: "flex", alignItems: "center",
+            padding: "13px 14px", gap: "10px",
+            borderBottom: `1px solid ${C.border2}`,
+          }}>
+            <span style={{ color: C.dim3, fontSize: "10px", fontFamily: "'DM Mono', monospace", minWidth: "18px" }}>
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: C.text, fontSize: "14px", fontFamily: "'Playfair Display', serif", letterSpacing: "0.02em", marginBottom: "2px" }}>
+                {cat.label}
+              </div>
+              <div style={{ color: C.dim2, fontSize: "9px", fontFamily: "'DM Mono', monospace", lineHeight: "1.5", letterSpacing: "0.03em" }}>
+                {cat.description}
+              </div>
+            </div>
+            <div style={{ color: C.dim3, fontSize: "14px", userSelect: "none", cursor: "grab", padding: "0 2px" }}>⠿</div>
+          </div>
+          <div style={{ padding: "10px 14px 12px", display: "flex", flexDirection: "column", gap: "8px", background: C.bg }}>
+            <Selector
+              options={WEIGHTS}
+              value={assessment.weight || null}
+              onChange={v => onWeightChange(cat.id, v)}
+              renderIcon={(opt, active) => <BarIcon count={opt.bars} active={active} />}
+            />
+            <Selector
+              options={ATTRIBUTIONS}
+              value={assessment.attribution || null}
+              onChange={v => onAttributionChange(cat.id, v)}
+              renderIcon={(opt, active) => <CircleIcon type={opt.value} active={active} />}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    function DraggableList({ items, assessments, onReorder, onWeightChange, onAttributionChange }) {
+      const dragItem     = useRef(null);
+      const dragOverItem = useRef(null);
+      const [draggingIndex, setDraggingIndex] = useState(null);
+      const touchItem    = useRef(null);
+      const itemRefs     = useRef([]);
+
+      const handleDragStart = i => { dragItem.current = i; setDraggingIndex(i); };
+      const handleDragEnter = i => { dragOverItem.current = i; };
+      const handleDragEnd   = () => {
+        if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+          const next = [...items];
+          const [moved] = next.splice(dragItem.current, 1);
+          next.splice(dragOverItem.current, 0, moved);
+          onReorder(next);
+        }
+        dragItem.current = null; dragOverItem.current = null; setDraggingIndex(null);
+      };
+
+      const handleTouchStart = (i, e) => { touchItem.current = i; };
+      const handleTouchMove  = (i, e) => {
+        e.preventDefault();
+        const y = e.touches[0].clientY;
+        itemRefs.current.forEach((ref, idx) => {
+          if (!ref) return;
+          const rect = ref.getBoundingClientRect();
+          if (y >= rect.top && y <= rect.bottom) dragOverItem.current = idx;
+        });
+      };
+      const handleTouchEnd = () => {
+        if (touchItem.current !== null && dragOverItem.current !== null && touchItem.current !== dragOverItem.current) {
+          const next = [...items];
+          const [moved] = next.splice(touchItem.current, 1);
+          next.splice(dragOverItem.current, 0, moved);
+          onReorder(next);
+        }
+        touchItem.current = null; dragOverItem.current = null;
+      };
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+          {items.map((cat, i) => (
+            <div key={cat.id} ref={el => itemRefs.current[i] = el}>
+              <CategoryCard
+                cat={cat} index={i}
+                assessment={assessments[cat.id] || {}}
+                onWeightChange={onWeightChange}
+                onAttributionChange={onAttributionChange}
+                dragging={draggingIndex === i}
+                onDragStart={() => handleDragStart(i)}
+                onDragEnter={() => handleDragEnter(i)}
+                onDragEnd={handleDragEnd}
+                onTouchStart={e => handleTouchStart(i, e)}
+                onTouchMove={e => handleTouchMove(i, e)}
+                onTouchEnd={handleTouchEnd}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function Legend() {
+      return (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px 16px", justifyContent: "center" }}>
+          {WEIGHTS.map(w => (
+            <div key={w.value} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <BarIcon count={w.bars} active={true} />
+              <span style={{ color: C.dim1, fontSize: "9px", fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em" }}>{w.label}</span>
+            </div>
+          ))}
+          <div style={{ width: "1px", background: C.border1, alignSelf: "stretch" }} />
+          {ATTRIBUTIONS.map(a => (
+            <div key={a.value} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <CircleIcon type={a.value} active={true} />
+              <span style={{ color: C.dim1, fontSize: "9px", fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", whiteSpace: "nowrap" }}>{a.label}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function IntroScreen({ onBegin }) {
+      return (
+        <div style={{
+          minHeight: "100vh", background: C.bg,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "40px 24px",
+        }}>
+          <div style={{ maxWidth: "340px", width: "100%", textAlign: "center" }}>
+            <div style={{ fontSize: "10px", letterSpacing: "0.3em", color: C.dim3, fontFamily: "'DM Mono', monospace", marginBottom: "20px" }}>◆</div>
+            <h1 style={{ fontSize: "52px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em", marginBottom: "12px", fontWeight: 400 }}>
+              Baseline
+            </h1>
+            <p style={{ color: C.dim1, fontSize: "11px", fontFamily: "'DM Mono', monospace", lineHeight: "2", letterSpacing: "0.06em", marginBottom: "40px" }}>
+              Eleven categories.<br />
+              Three inputs each.<br />
+              One honest conversation.
+            </p>
+            <div style={{
+              display: "flex", flexDirection: "column", gap: "12px",
+              marginBottom: "40px", textAlign: "left",
+              padding: "20px", background: C.surface,
+              border: `1px solid ${C.border1}`, borderRadius: "10px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}>
+              {[
+                "Rank categories by dragging them into your order of importance.",
+                "For each category, select a weight and an attribution.",
+                "Complete privately. Share your screen when ready.",
+              ].map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                  <span style={{ color: C.accent, fontFamily: "'DM Mono', monospace", fontSize: "10px", minWidth: "18px", paddingTop: "1px" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span style={{ color: C.dim1, fontFamily: "'DM Mono', monospace", fontSize: "10px", lineHeight: "1.7", letterSpacing: "0.04em" }}>
+                    {step}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button onClick={onBegin} style={{
+              width: "100%", padding: "16px",
+              background: C.accent, border: "none", borderRadius: "8px",
+              color: "#fff", fontSize: "10px", fontFamily: "'DM Mono', monospace",
+              letterSpacing: "0.2em", textTransform: "uppercase", cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(184,92,56,0.3)",
+            }}>
+              Begin
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function AssessmentScreen({ items, assessments, onReorder, onWeightChange, onAttributionChange, onViewResults }) {
+      const completed  = items.filter(cat => assessments[cat.id]?.weight && assessments[cat.id]?.attribution).length;
+      const isComplete = completed === items.length;
+
+      return (
+        <div style={{ minHeight: "100vh", background: C.bg }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 14px 130px" }}>
+            <div style={{
+              padding: "20px 0 16px",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              borderBottom: `1px solid ${C.border1}`, marginBottom: "16px",
+              position: "sticky", top: 0, background: C.bg, zIndex: 10,
+            }}>
+              <span style={{ fontSize: "17px", fontFamily: "'Playfair Display', serif", color: C.text, letterSpacing: "0.04em" }}>Baseline</span>
+              <span style={{ fontSize: "10px", fontFamily: "'DM Mono', monospace", color: isComplete ? C.accent : C.dim3, letterSpacing: "0.1em", transition: "color 0.3s" }}>
+                {completed} / {items.length}
+              </span>
+            </div>
+            <div style={{ fontSize: "9px", color: C.dim3, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", marginBottom: "14px" }}>
+              DRAG TO RANK · TAP TO SELECT
+            </div>
+            <DraggableList
+              items={items} assessments={assessments}
+              onReorder={onReorder} onWeightChange={onWeightChange} onAttributionChange={onAttributionChange}
+            />
+          </div>
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            padding: "16px 20px 24px",
+            background: `linear-gradient(to top, ${C.bg} 65%, transparent)`,
+            display: "flex", justifyContent: "center",
+          }}>
+            <button
+              onClick={() => isComplete && onViewResults()}
+              style={{
+                width: "100%", maxWidth: "480px", padding: "15px",
+                background: isComplete ? C.accent : "transparent",
+                border: `1px solid ${isComplete ? C.accent : C.border1}`,
+                borderRadius: "8px",
+                color: isComplete ? "#fff" : C.dim2,
+                fontSize: "10px", fontFamily: "'DM Mono', monospace",
+                letterSpacing: "0.18em", textTransform: "uppercase",
+                cursor: isComplete ? "pointer" : "default",
+                transition: "all 0.3s ease",
+                boxShadow: isComplete ? "0 2px 8px rgba(184,92,56,0.3)" : "none",
+              }}
+            >
+              {isComplete ? "View Results" : `${items.length - completed} categories remaining`}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function ResultsScreen({ items, assessments, onReset }) {
+      return (
+        <div style={{ minHeight: "100vh", background: C.bg }}>
+          <div style={{ maxWidth: "480px", margin: "0 auto", padding: "0 14px 48px" }}>
+            <div style={{ padding: "32px 0 24px", textAlign: "center" }}>
+              <div style={{ fontSize: "9px", letterSpacing: "0.25em", color: C.accent, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginBottom: "10px" }}>◆</div>
+              <h2 style={{ fontSize: "28px", fontFamily: "'Playfair Display', serif", color: C.text, fontWeight: 400, marginBottom: "6px" }}>Your Baseline</h2>
+              <p style={{ fontSize: "10px", color: C.dim1, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Share this screen with your partner</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "28px" }}>
+              {items.map((cat, i) => {
+                const w = WEIGHTS.find(x => x.value === assessments[cat.id]?.weight);
+                const a = ATTRIBUTIONS.find(x => x.value === assessments[cat.id]?.attribution);
+                return (
+                  <div key={cat.id} style={{
+                    display: "flex", alignItems: "center",
+                    padding: "11px 14px", gap: "10px",
+                    background: C.surface, border: `1px solid ${C.border1}`, borderRadius: "8px",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                  }}>
+                    <span style={{ color: C.accent, fontSize: "10px", fontFamily: "'DM Mono', monospace", minWidth: "18px" }}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span style={{ flex: 1, color: C.text, fontSize: "14px", fontFamily: "'Playfair Display', serif" }}>
+                      {cat.label}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      {w && <BarIcon count={w.bars} active={true} />}
+                      {a && <CircleIcon type={a.value} active={true} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{
+              padding: "16px", background: C.accentBg,
+              border: `1px solid ${C.border1}`, borderRadius: "8px",
+              marginBottom: "20px", textAlign: "center",
+            }}>
+              <p style={{ color: C.dim1, fontSize: "10px", fontFamily: "'DM Mono', monospace", lineHeight: "1.8", letterSpacing: "0.05em" }}>
+                Want to explore your results together?<br />
+                Screenshot this screen and share it with Claude.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <Legend />
+            </div>
+
+            <button onClick={onReset} style={{
+              width: "100%", padding: "14px",
+              background: "transparent", border: `1px solid ${C.border1}`,
+              borderRadius: "8px", color: C.dim1,
+              fontSize: "10px", fontFamily: "'DM Mono', monospace",
+              letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer",
+            }}>
+              Start Over
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [screen, setScreen]           = useState("intro");
+      const [items, setItems]             = useState(CATEGORIES);
+      const [assessments, setAssessments] = useState({});
+
+      const handleWeightChange      = (id, v) => setAssessments(prev => ({ ...prev, [id]: { ...prev[id], weight: v } }));
+      const handleAttributionChange = (id, v) => setAssessments(prev => ({ ...prev, [id]: { ...prev[id], attribution: v } }));
+      const handleReset = () => { setItems(CATEGORIES); setAssessments({}); setScreen("intro"); };
+
+      if (screen === "intro")   return <IntroScreen onBegin={() => setScreen("assessment")} />;
+      if (screen === "results") return <ResultsScreen items={items} assessments={assessments} onReset={handleReset} />;
+      return (
+        <AssessmentScreen
+          items={items} assessments={assessments}
+          onReorder={setItems}
+          onWeightChange={handleWeightChange}
+          onAttributionChange={handleAttributionChange}
+          onViewResults={() => setScreen("results")}
+        />
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
